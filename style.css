@@ -2,6 +2,7 @@ body,
 html {
   padding: 0;
   margin: 0;
+  overflow-x: hidden;
 }
 
 .completed {
@@ -11,9 +12,7 @@ html {
 .seconds {
   color: #87ceeb;
   font-weight: bold;
-  margin-right: 32px;
   text-align: right;
-  width: 48px;
   display: inline-block;
 }
 

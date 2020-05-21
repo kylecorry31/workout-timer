@@ -6,16 +6,7 @@ class WorkoutSet {
 }
 
 var timerCircle;
-
-document.body.onload = () => {
-  timerCircle = radialIndicator("#timerCircle", {
-    barColor: "#87CEEB",
-    barWidth: 10,
-    initValue: 0,
-    minValue: 0,
-    maxValue: 60,
-  });
-};
+var wasStarted = false;
 
 var app = new Vue({
   el: "#workout-timer",
@@ -25,37 +16,44 @@ var app = new Vue({
     isDone: false,
     title: "",
     paused: false,
-    sets: [
-      new WorkoutSet("Strikes", 3 * 60),
-      new WorkoutSet("Lunge and left hook", 60),
-      new WorkoutSet("Strikes", 3 * 60),
-      new WorkoutSet("Lunge and right hook", 60),
-      new WorkoutSet("Water break", 60),
-      new WorkoutSet("Two hand choke from behind", 60),
-      new WorkoutSet("Two hand choke from behind then combos", 3 * 60),
-      new WorkoutSet(
-        "Two hand choke from behind then combos and a 15 count mountain climber burpee",
-        3 * 60
-      ),
-      new WorkoutSet("Water break", 60),
-      new WorkoutSet("Extended hook punch defense with combos", 2 * 60),
-      new WorkoutSet("Ground and pound", 30),
-      new WorkoutSet(
-        "Extended hook punch defense with combos and kick",
-        2 * 60
-      ),
-      new WorkoutSet("Squat thrusters", 30),
-      new WorkoutSet(
-        "Combo with kick then extended hook punch defense",
-        2 * 60
-      ),
-      new WorkoutSet("Burpees", 30),
-    ],
+    started: false,
+    rawWorkout: "",
+    sets: [],
+  },
+  methods: {
+    start: function () {
+      this.sets = parseWorkout(this.rawWorkout);
+      this.started = true;
+    },
   },
 });
 
+function parseWorkout(workout) {
+  return workout
+    .split("\n")
+    .map((it) => it.split(",").map((it) => it.trim()))
+    .map((it) => new WorkoutSet(it[0], +it[1]));
+}
+
 setInterval(() => {
-  if (!app.paused && !window.speechSynthesis.speaking) {
+  if (app.started && !wasStarted) {
+    timerCircle = radialIndicator("#timerCircle", {
+      barColor: "#87CEEB",
+      barWidth: 10,
+      initValue: 0,
+      minValue: 0,
+      maxValue: 60,
+    });
+  }
+
+  wasStarted = app.started;
+
+  if (
+    app.started &&
+    !app.paused &&
+    !window.speechSynthesis.speaking &&
+    app.sets.length > 0
+  ) {
     app.timeLeft--;
     if (app.timeLeft <= 0) {
       app.idx++;

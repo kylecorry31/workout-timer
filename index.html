@@ -30,28 +30,50 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
   </head>
   <body>
-    <div id="workout-timer" class="d-flex justify-content-between">
-      <div id="workout">
-        <div
-          v-for="(workoutSet, index) in sets"
-          v-bind:class="{ completed: idx > index, current: idx === index }"
-          class="workout-set p-3"
-        >
-          <span class="seconds">{{workoutSet.duration}}</span>
-          {{workoutSet.name}}
+    <div id="workout-timer">
+      <div v-if="!started">
+        <div id="workout-entry" class="container p-5">
+          <h1>Enter your workout plan</h1>
+          <p class="font-weight-bold m-0">Format:</p>
+          <p class="m-0">exercise name,seconds</p>
+          <p>exercise name,seconds</p>
+          <div class="input-group">
+            <textarea
+              class="form-control"
+              placeholder="Jog,180&#10;Walk,60&#10;Jog,180"
+              rows="15"
+              v-model="rawWorkout"
+            ></textarea>
+          </div>
+          <button class="btn btn-primary mt-3" v-on:click="start()">
+            Start workout
+          </button>
         </div>
       </div>
 
-      <div
-        v-if="!isDone"
-        id="timer"
-        class="d-flex justify-content-center align-items-center flex-column"
-      >
-        <h1>{{title}}</h1>
-        <div id="timerCircle"></div>
-        <button class="btn btn-primary mt-5" v-on:click="paused = !paused">
-          {{paused ? "Resume" : "Pause"}}
-        </button>
+      <div class="d-flex justify-content-between" v-if="started">
+        <div id="workout">
+          <div
+            v-for="(workoutSet, index) in sets"
+            v-bind:class="{ completed: idx > index, current: idx === index }"
+            class="workout-set p-3 row"
+          >
+            <div class="seconds col-1">{{workoutSet.duration}}</div>
+            <div class="text-wrap col-11">{{workoutSet.name}}</div>
+          </div>
+        </div>
+
+        <div
+          v-if="!isDone"
+          id="timer"
+          class="d-flex justify-content-center align-items-center flex-column"
+        >
+          <h1>{{title}}</h1>
+          <div id="timerCircle"></div>
+          <button class="btn btn-primary mt-5" v-on:click="paused = !paused">
+            {{paused ? "Resume" : "Pause"}}
+          </button>
+        </div>
       </div>
     </div>
   </body>
