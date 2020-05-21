@@ -7,6 +7,7 @@ class WorkoutSet {
 
 var timerCircle;
 var wasStarted = false;
+var speakingActivity = false;
 
 var app = new Vue({
   el: "#workout-timer",
@@ -23,7 +24,10 @@ var app = new Vue({
   methods: {
     start: function () {
       localStorage.setItem("workout-sets", this.rawWorkout);
+      timerCircle = null;
       this.sets = parseWorkout(this.rawWorkout);
+      this.idx = -1;
+      this.isDone = false;
       this.started = true;
     },
     next: function () {
@@ -34,11 +38,10 @@ var app = new Vue({
         timerCircle.option("maxValue", this.timeLeft);
         timerCircle.value(this.timeLeft);
         window.speechSynthesis.cancel();
-        var msg = new SpeechSynthesisUtterance(
-          `${this.title} - ${this.timeLeft} seconds - begin`
-        );
-        window.speechSynthesis.speak(msg);
+        speak(`${this.title} - ${this.timeLeft} seconds - begin`);
+        speakingActivity = true;
       } else {
+        this.started = false;
         this.title = "done";
         this.timeLeft = 0;
         this.isDone = true;
@@ -59,8 +62,13 @@ function parseWorkout(workout) {
     .map((it) => new WorkoutSet(it[0], +it[1]));
 }
 
+function speak(text) {
+  var msg = new SpeechSynthesisUtterance(text);
+  window.speechSynthesis.speak(msg);
+}
+
 setInterval(() => {
-  if (app.started && !wasStarted) {
+  if (app.started && !wasStarted && timerCircle == null) {
     timerCircle = radialIndicator("#timerCircle", {
       barColor: "#87CEEB",
       barWidth: 10,
@@ -72,15 +80,25 @@ setInterval(() => {
 
   wasStarted = app.started;
 
+  speakingActivity = speakingActivity && window.speechSynthesis.speaking;
+
   if (
     app.started &&
     !app.paused &&
-    !window.speechSynthesis.speaking &&
+    !speakingActivity && // TODO: only care about initial speaking
     app.sets.length > 0
   ) {
     app.timeLeft--;
     if (app.timeLeft <= 0) {
       app.next();
+    }
+
+    if (app.timeLeft === 10) {
+      speak("10 seconds");
+    }
+
+    if (app.timeLeft <= 5 && app.timeLeft > 0) {
+      speak(app.timeLeft);
     }
     timerCircle.value(app.timeLeft);
   }
