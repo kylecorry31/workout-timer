@@ -17,13 +17,37 @@ var app = new Vue({
     title: "",
     paused: false,
     started: false,
-    rawWorkout: "",
+    rawWorkout: localStorage.getItem("workout-sets") || "",
     sets: [],
   },
   methods: {
     start: function () {
+      localStorage.setItem("workout-sets", this.rawWorkout);
       this.sets = parseWorkout(this.rawWorkout);
       this.started = true;
+    },
+    next: function () {
+      this.idx++;
+      if (this.idx < this.sets.length) {
+        this.timeLeft = this.sets[this.idx].duration;
+        this.title = this.sets[this.idx].name;
+        timerCircle.option("maxValue", this.timeLeft);
+        timerCircle.value(this.timeLeft);
+        window.speechSynthesis.cancel();
+        var msg = new SpeechSynthesisUtterance(
+          `${this.title} - ${this.timeLeft} seconds - begin`
+        );
+        window.speechSynthesis.speak(msg);
+      } else {
+        this.title = "done";
+        this.timeLeft = 0;
+        this.isDone = true;
+      }
+    },
+    previous: function () {
+      // TODO: Make this better
+      this.idx -= 2;
+      this.timeLeft = 0;
     },
   },
 });
@@ -56,20 +80,7 @@ setInterval(() => {
   ) {
     app.timeLeft--;
     if (app.timeLeft <= 0) {
-      app.idx++;
-      if (app.idx < app.sets.length) {
-        app.timeLeft = app.sets[app.idx].duration;
-        app.title = app.sets[app.idx].name;
-        timerCircle.option("maxValue", app.timeLeft);
-        var msg = new SpeechSynthesisUtterance(
-          `${app.title} - ${app.timeLeft} seconds - begin`
-        );
-        window.speechSynthesis.speak(msg);
-      } else {
-        app.title = "done";
-        app.timeLeft = 0;
-        app.isDone = true;
-      }
+      app.next();
     }
     timerCircle.value(app.timeLeft);
   }

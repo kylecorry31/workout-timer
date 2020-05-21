@@ -5,33 +5,9 @@ html {
   overflow-x: hidden;
 }
 
-.completed {
-  opacity: 0.2;
-}
-
 .seconds {
   color: #87ceeb;
   font-weight: bold;
   text-align: right;
   display: inline-block;
-}
-
-.current {
-  background-color: #87ceeb;
-}
-
-.current .seconds {
-  color: black;
-}
-
-#workout,
-#timer {
-  width: 50%;
-}
-
-#timer {
-  position: fixed;
-  right: 0;
-  top: 0;
-  height: 100vh;
 }
