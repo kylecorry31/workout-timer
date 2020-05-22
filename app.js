@@ -5,6 +5,15 @@ class WorkoutSet {
   }
 }
 
+let clipboard = new ClipboardJS("#copy-btn");
+clipboard.on("success", function (e) {
+  let copyBtn = $("#copy-btn");
+  copyBtn.tooltip("show");
+  setTimeout(() => {
+    copyBtn.tooltip("dispose");
+  }, 1000);
+});
+
 var timerCircle;
 var wasStarted = false;
 var speakingActivity = false;
@@ -18,8 +27,15 @@ var app = new Vue({
     title: "",
     paused: false,
     started: false,
-    rawWorkout: localStorage.getItem("workout-sets") || "",
+    rawWorkout: getInitialRawWorkout(),
     sets: [],
+  },
+  computed: {
+    url: function () {
+      return (
+        location.origin + `?workout=${encodeURIComponent(this.rawWorkout)}`
+      );
+    },
   },
   methods: {
     start: function () {
@@ -49,11 +65,30 @@ var app = new Vue({
     },
     previous: function () {
       // TODO: Make this better
+      if (this.idx <= 0) return;
       this.idx -= 2;
-      this.timeLeft = 0;
+      this.next();
+    },
+    refresh: function () {
+      window.speechSynthesis.cancel();
+      location.href = this.url;
     },
   },
 });
+
+function getInitialRawWorkout() {
+  const inURL = new URLSearchParams(location.search).get("workout");
+  if (inURL != null && inURL.trim() !== "") {
+    return inURL;
+  }
+
+  const inLocalStorage = localStorage.getItem("workout-sets");
+  if (inLocalStorage != null && inLocalStorage.trim() !== "") {
+    return inLocalStorage;
+  }
+
+  return "";
+}
 
 function parseWorkout(workout) {
   return workout
@@ -93,12 +128,16 @@ setInterval(() => {
       app.next();
     }
 
-    if (app.timeLeft === 10) {
-      speak("10 seconds");
+    if (app.timeLeft === 31) {
+      setTimeout(() => speak("30 seconds"), 500);
     }
 
-    if (app.timeLeft <= 5 && app.timeLeft > 0) {
-      speak(app.timeLeft);
+    if (app.timeLeft === 11) {
+      setTimeout(() => speak("10 seconds"), 500);
+    }
+
+    if (app.timeLeft <= 6 && app.timeLeft > 1) {
+      setTimeout(() => speak(app.timeLeft - 1), 50 * app.timeLeft - 50);
     }
     timerCircle.value(app.timeLeft);
   }

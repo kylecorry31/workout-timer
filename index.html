@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Workout Timer</title>
     <script src="radialIndicator.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
     <script
       src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
       integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj"
@@ -28,15 +32,62 @@
     ></script>
     <link rel="stylesheet" href="style.css" />
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/clipboard@2/dist/clipboard.min.js"></script>
   </head>
   <body>
-    <div id="workout-timer" class="m-3">
-      <div v-if="!started">
-        <div id="workout-entry" class="container p-5">
-          <h1>Enter your workout plan</h1>
-          <p class="font-weight-bold m-0">Format:</p>
-          <p class="m-0">exercise name,seconds</p>
-          <p>exercise name,seconds</p>
+    <div id="workout-timer">
+      <!-- Navbar -->
+      <div id="nav">
+        <div class="container">
+          <div class="row">
+            <div class="col-12">
+              <div class="d-flex">
+                <h6 class="m-0 p-2 mt-3 mr-auto d-flex align-items-center">
+                  <i class="material-icons text-secondary mr-4"
+                    >fitness_center</i
+                  >
+                  Workout Timer
+                </h6>
+                <div class="mr-3 mt-3">
+                  <button
+                    class="btn"
+                    id="copy-btn"
+                    v-bind:data-clipboard-text="url"
+                    data-placement="bottom"
+                    title="Copied!"
+                    v-if="rawWorkout"
+                  >
+                    <i
+                      class="material-icons text-secondary"
+                      title="Copy workout link"
+                      >file_copy</i
+                    >
+                  </button>
+                  <button
+                    class="btn btn-primary"
+                    v-on:click="start()"
+                    v-if="!started && rawWorkout"
+                  >
+                    Start
+                  </button>
+                  <button
+                    class="btn btn-primary"
+                    v-on:click="refresh()"
+                    v-if="started"
+                  >
+                    Create
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Workout entry -->
+      <div v-if="!started" class="content">
+        <div id="workout-entry" class="container">
+          <p class="font-weight-bold text">Workout plan</p>
           <div class="input-group">
             <textarea
               class="form-control"
@@ -45,14 +96,16 @@
               v-model="rawWorkout"
             ></textarea>
           </div>
-          <button class="btn btn-primary mt-3" v-on:click="start()">
-            Start workout
-          </button>
+          <div class="text-secondary">
+            <p class="font-weight-bold m-0 mt-3">Format:</p>
+            <p class="m-0">exercise name,seconds</p>
+            <p>exercise name,seconds</p>
+          </div>
         </div>
       </div>
 
       <div
-        class="d-flex justify-content-between flex-column container mx-auto"
+        class="d-flex justify-content-between flex-column container mx-auto content"
         v-if="started"
       >
         <div
@@ -62,31 +115,36 @@
         >
           <h2 class="text-center">{{title}}</h2>
           <div id="timerCircle" class="mb-3 mt-3"></div>
-          <div class="row">
+          <div class="row mb-3">
             <button
-              class="btn btn-primary mr-3"
+              class="btn mr-3"
               v-on:click="previous()"
-              v-if="idx > 0"
+              v-bind:class="{ disabled: idx <= 0 }"
             >
-              Previous
+              <i class="material-icons">skip_previous</i>
             </button>
-            <button class="btn btn-primary mr-3" v-on:click="paused = !paused">
-              {{paused ? "Resume" : "Pause"}}
+            <button class="btn mr-3" v-on:click="paused = !paused">
+              <i class="material-icons">
+                {{paused ? "play_arrow" : "pause"}}
+              </i>
             </button>
-            <button
-              class="btn btn-primary"
-              v-on:click="next()"
-              v-if="idx < sets.length - 1"
-            >
-              Next
+            <button class="btn" v-on:click="next()">
+              <i class="material-icons">skip_next</i>
             </button>
           </div>
         </div>
 
-        <h5 class="mt-3 text-center">Up next</h5>
+        <h5 class="mt-3 text-center" v-if="idx < sets.length - 1">Up next</h5>
+        <h5 class="mt-3 text-center" v-if="idx >= sets.length - 1">
+          Last round!
+        </h5>
         <div id="workout">
-          <div v-for="(workoutSet, index) in sets">
-            <div v-if="index > idx" class="workout-set p-3 row">
+          <div
+            v-for="(workoutSet, index) in sets"
+            v-if="index > idx"
+            class="workout-set"
+          >
+            <div class="p-3 row">
               <div class="seconds col-1">{{workoutSet.duration}}</div>
               <div class="text-wrap col-11">{{workoutSet.name}}</div>
             </div>
