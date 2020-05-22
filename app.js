@@ -33,7 +33,9 @@ var app = new Vue({
   computed: {
     url: function () {
       return (
-        location.origin + `?workout=${encodeURIComponent(this.rawWorkout)}`
+        location.origin +
+        location.pathname +
+        `?workout=${encodeURIComponent(this.rawWorkout)}`
       );
     },
   },
